@@ -933,7 +933,7 @@ static void CheckInitializationParams(const char* client_id, bool request_server
 }
 
 
-static void InitializeJNI(const char* client_id, bool request_server_auth_code, bool request_id_token)
+static void InitializeJNI(const char* client_id, bool request_server_auth_code, bool request_id_token, bool request_email)
 {
     CheckInitializationParams(client_id, request_server_auth_code > 0, request_id_token > 0);
 
@@ -947,7 +947,7 @@ static void InitializeJNI(const char* client_id, bool request_server_auth_code, 
     jstring java_client_id = env->NewStringUTF(client_id);
 
     g_gpgs.m_GpgsJNI = env->NewGlobalRef(env->NewObject(cls, jni_constructor, threadAttacher.GetActivity()->clazz,
-                                g_gpgs_disk.is_using, request_server_auth_code, request_id_token, java_client_id));
+                                g_gpgs_disk.is_using, request_server_auth_code, request_id_token, request_email, java_client_id));
 
     env->DeleteLocalRef(java_client_id);
 }
@@ -961,10 +961,11 @@ static dmExtension::Result InitializeGpgs(dmExtension::Params* params)
 
     int request_server_auth_code = dmConfigFile::GetInt(params->m_ConfigFile, "gpgs.request_server_auth_code", 0);
     int request_id_token = dmConfigFile::GetInt(params->m_ConfigFile, "gpgs.request_id_token", 0);
+    int request_email = dmConfigFile::GetInt(params->m_ConfigFile, "gpgs.request_email", 0);
 
     const char* client_id = dmConfigFile::GetString(params->m_ConfigFile, "gpgs.client_id", 0);
 
-    InitializeJNI(client_id, request_server_auth_code > 0, request_id_token > 0);
+    InitializeJNI(client_id, request_server_auth_code > 0, request_id_token > 0, request_email > 0);
     dmAndroid::RegisterOnActivityResultListener(OnActivityResult);
     gpgs_callback_initialize();
     return dmExtension::RESULT_OK;
